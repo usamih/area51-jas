@@ -1,0 +1,82 @@
+<!-- Copyright (c) 1998-2021 Software AG, Darmstadt, Germany and/or Software AG USA Inc., Reston, VA, USA, 
+and/or its subsidiaries and/or its affiliates and/or their licensors. Use, reproduction, transfer, 
+publication or disclosure is prohibited except as specifically provided for in your License Agreement 
+with Software AG. -->
+
+
+<project name="Java Adabas Services" basedir="." default="all">
+	
+	<property name="basejars" value="${basedir}/../jars" />
+	<property name="dependjars" value="${basedir}/../build/lib" description="(usajlim RGHADA-3202) junit.jar library must be in a common place" />
+	
+	<target name="all" depends="init,info,clean,dependencies,build" />
+	
+    <target name="init">
+    	<mkdir dir="bin" description="(usajlim RGHADA-3202) Creates the bin directory that Eclipse 'Build Automatically' creates in a developer machine" />
+        <tstamp />
+        <property name="jars" value="${basejars}.${DSTAMP}" />
+        <mkdir dir="${jars}" />
+    </target>
+
+    <target name="info" depends="init">
+        <echo message="basedir    = ${basedir}" /> 
+        <echo message="dependjars = ${dependjars}" /> 
+        <echo message="jars       = ${jars}" /> 
+    </target>
+
+	<target name="clean" depends="info">
+		<delete includeemptydirs="true" description="(usajlim RGHADA-3202) Recursivelly cleans the bin directory" >
+			<fileset dir="bin" includes="**/*" />
+		</delete>
+		<delete file="${jars}/jas.jar" />
+	</target>
+	
+	<target name="dependencies" depends="clean">
+		<copy todir="${jars}">
+			<fileset dir="${dependjars}" description="(usajlim RGHADA-3202) junit.jar library must be in a common place">
+				<include name="junit.jar" />
+			</fileset>
+			<fileset dir="${basedir}/../org.apache.log4j">
+				<include name="log4j-1.2.17.jar" />
+			</fileset>
+			
+		</copy>
+	</target>
+	
+	<target name="build" depends="dependencies">
+		
+		<javac srcdir="src/" destdir="bin/" debug="true" debuglevel="lines,vars,source" includeantruntime="false">
+			<src path="src/main/java/com/softwareag/adabas/jas" />
+			<classpath>
+				<pathelement location="${jars}/log4j-1.2.17.jar" />
+				<pathelement location="${jars}/xts.jar" />
+				<pathelement location="${jars}/junit.jar" />
+			</classpath>
+		</javac>
+		
+		<copy todir="${jars}/jas-classes">
+			<fileset dir="bin/">
+				<include name="**/jas/**" />
+			</fileset>
+		</copy>
+		
+		<jar jarfile="${jars}/jas.jar" index="true" >
+			<fileset dir="${jars}/jas-classes" />
+			<manifest>
+				<attribute name="Manifest-Version" value="1.0" />
+				<attribute name="Bundle-ManifestVersion" value="2" />
+				<attribute name="Bundle-Name" value="JAS" />
+				<attribute name="Bundle-SymbolicName" value="com.softwareag.adabas.jas" />
+				<attribute name="Bundle-Version" value="1.0.0" />
+				<attribute name="Bundle-Vendor" value="Software AG" />
+				<attribute name="Bundle-RequiredExecutionEnvironment" value="JavaSE-1.6" />
+				<attribute name="Export-Package" value="com.softwareag.adabas.jas,
+				 com.softwareag.adabas.jas.xts" />
+			</manifest>
+		</jar>
+		
+		<delete dir="${jars}/jas-classes" />
+		
+	</target>
+	
+</project>
